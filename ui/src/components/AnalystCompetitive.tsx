@@ -1,3 +1,5 @@
+import { ExternalLink } from "lucide-react";
+
 interface Props {
   data: Record<string, any>;
 }
@@ -54,7 +56,7 @@ export default function AnalystCompetitive({ data }: Props) {
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border shrink-0 mt-0.5 ${ratingStyle(r.rating || "")}`}>
                   {r.rating}
                 </span>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="text-sm text-ink-200 font-medium">{r.firm}</div>
                   {r.report && (
                     <div className="text-[11px] text-ink-500 mt-0.5">{r.report}</div>
@@ -63,6 +65,16 @@ export default function AnalystCompetitive({ data }: Props) {
                     <div className="text-xs text-ink-400 mt-1 leading-relaxed">{r.detail}</div>
                   )}
                 </div>
+                {r.url && (
+                  <a
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-ink-600 hover:text-accent-400 transition-colors shrink-0 mt-0.5"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
               </div>
             ))}
           </div>

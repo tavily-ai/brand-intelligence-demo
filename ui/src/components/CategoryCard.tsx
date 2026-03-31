@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Globe, ExternalLink, Loader2 } from "lucide-react";
-import { CategoryState, Source } from "../types";
+import { CategoryState, Source, ResearchPhase, PHASE_LABELS } from "../types";
 import SourcesList from "./SourcesList";
 
 interface Props {
@@ -22,7 +22,7 @@ function getDomain(url: string): string {
 }
 
 function LiveProgress({ state }: { state: CategoryState }) {
-  const { sources, progressMessage } = state;
+  const { phase, queries, sources, progressMessage } = state;
 
   return (
     <div className="space-y-4">
@@ -33,6 +33,29 @@ function LiveProgress({ state }: { state: CategoryState }) {
           {progressMessage || "Starting research..."}
         </span>
       </div>
+
+      {/* Queries used */}
+      {queries.length > 0 && (
+        <div>
+          <p className="text-[11px] text-ink-500 uppercase tracking-wider font-medium mb-2">
+            Search Queries ({queries.length})
+          </p>
+          <div className="space-y-1">
+            {queries.map((q, i) => (
+              <motion.div
+                key={q}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.03, duration: 0.2 }}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-md glass-subtle"
+              >
+                <Globe className="w-3 h-3 text-ink-500 shrink-0" />
+                <span className="text-[12px] text-ink-300 font-mono truncate">{q}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Sources trickling in */}
       {sources.length > 0 && (
@@ -79,7 +102,7 @@ function LiveProgress({ state }: { state: CategoryState }) {
       )}
 
       {/* Fallback shimmer when no data yet */}
-      {sources.length === 0 && (
+      {queries.length === 0 && sources.length === 0 && (
         <div className="space-y-3">
           <div className="h-4 w-3/4 rounded animate-shimmer" />
           <div className="h-4 w-1/2 rounded animate-shimmer" />

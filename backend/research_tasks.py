@@ -125,7 +125,7 @@ def get_research_tasks(
                                 },
                                 "date": {
                                     "type": "string",
-                                    "description": "Approximate publication date (e.g. 'March 2025')",
+                                    "description": "Publication date in YYYY-MM format for sorting (e.g. '2025-03', '2024-11'). Use best estimate if exact month is unknown.",
                                 },
                                 "sentiment": {
                                     "type": "string",
@@ -191,6 +191,10 @@ def get_research_tasks(
                                     "type": "string",
                                     "description": "Approximate number of reviews (e.g. '2,400 reviews')",
                                 },
+                                "url": {
+                                    "type": "string",
+                                    "description": "Direct URL to the review page on that platform. Empty string if unavailable.",
+                                },
                             },
                         },
                     },
@@ -208,6 +212,10 @@ def get_research_tasks(
                                     "type": "string",
                                     "description": "1-2 sentence elaboration with specific examples",
                                 },
+                                "source_url": {
+                                    "type": "string",
+                                    "description": "URL to a review, Reddit thread, or discussion supporting this. Empty string if unavailable.",
+                                },
                             },
                         },
                     },
@@ -224,6 +232,10 @@ def get_research_tasks(
                                 "detail": {
                                     "type": "string",
                                     "description": "1-2 sentence elaboration with specific examples",
+                                },
+                                "source_url": {
+                                    "type": "string",
+                                    "description": "URL to a review, Reddit thread, or discussion supporting this. Empty string if unavailable.",
                                 },
                             },
                         },
@@ -269,6 +281,10 @@ def get_research_tasks(
                                 "detail": {
                                     "type": "string",
                                     "description": "1-2 sentence summary of the evaluation",
+                                },
+                                "url": {
+                                    "type": "string",
+                                    "description": "URL to the report, announcement, or blog post about this rating. Empty string if unavailable.",
                                 },
                             },
                         },

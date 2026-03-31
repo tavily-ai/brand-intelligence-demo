@@ -13,11 +13,15 @@ export type CategoryKey =
 
 export type CategoryStatus = "pending" | "in_progress" | "completed" | "error";
 
+export type ResearchPhase = "planning" | "searching" | "analyzing" | "generating";
+
 export interface CategoryState {
   status: CategoryStatus;
   data: Record<string, any> | null;
   sources: Source[];
   progressMessage: string;
+  phase: ResearchPhase | null;
+  queries: string[];
 }
 
 export type CategoriesState = Record<CategoryKey, CategoryState>;
@@ -38,8 +42,22 @@ export const CATEGORY_ORDER: CategoryKey[] = [
   "risks_opportunities",
 ];
 
+export const PHASE_LABELS: Record<ResearchPhase, string> = {
+  planning: "Planning",
+  searching: "Searching",
+  analyzing: "Analyzing",
+  generating: "Generating",
+};
+
 export function initialCategoriesState(): CategoriesState {
-  const blank = { status: "pending" as const, data: null, sources: [] as Source[], progressMessage: "" };
+  const blank: CategoryState = {
+    status: "pending",
+    data: null,
+    sources: [],
+    progressMessage: "",
+    phase: null,
+    queries: [],
+  };
   const state: Partial<CategoriesState> = {};
   for (const key of CATEGORY_ORDER) {
     state[key] = { ...blank };

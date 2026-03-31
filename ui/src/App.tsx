@@ -100,6 +100,10 @@ export default function App() {
               ...prev[cat],
               status: "in_progress" as const,
               progressMessage: event.message || "",
+              phase: event.phase || prev[cat].phase,
+              queries: event.queries?.length
+                ? [...new Set([...prev[cat].queries, ...event.queries])]
+                : prev[cat].queries,
             },
           }));
         }
@@ -129,6 +133,8 @@ export default function App() {
               data: event.data || {},
               sources: event.sources || prev[cat].sources,
               progressMessage: "",
+              phase: null,
+              queries: prev[cat].queries,
             },
           }));
           setHasResults(true);

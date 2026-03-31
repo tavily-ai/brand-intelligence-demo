@@ -15,6 +15,28 @@ function parsePressItems(raw: unknown): any[] {
   return [];
 }
 
+/** Sort by date descending (YYYY-MM format). Items without dates go last. */
+function sortByDateDesc(items: any[]): any[] {
+  return [...items].sort((a, b) => {
+    const da = a.date || "";
+    const db = b.date || "";
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return db.localeCompare(da);
+  });
+}
+
+/** Convert YYYY-MM to readable format like "Mar 2025" */
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const match = dateStr.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return dateStr; // fallback: return as-is
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthIdx = parseInt(match[2], 10) - 1;
+  return `${months[monthIdx] || match[2]} ${match[1]}`;
+}
+
 const SENTIMENT_STYLES: Record<string, { dot: string; text: string }> = {
   positive: { dot: "bg-emerald-500", text: "text-emerald-600" },
   neutral: { dot: "bg-blue-400", text: "text-blue-500" },
@@ -28,7 +50,7 @@ const TONE_STYLES: Record<string, { bg: string; border: string; text: string }> 
 };
 
 export default function MediaPress({ data }: Props) {
-  const pressItems = parsePressItems(data.press_items);
+  const pressItems = sortByDateDesc(parsePressItems(data.press_items));
   const tone = (data.overall_tone || "").toLowerCase();
   const toneStyle = TONE_STYLES[tone] || TONE_STYLES.mixed;
 
@@ -48,7 +70,7 @@ export default function MediaPress({ data }: Props) {
         )}
       </div>
 
-      {/* Press items */}
+      {/* Press items — sorted latest first */}
       {pressItems.length > 0 && (
         <div className="space-y-2">
           {pressItems.map((item: any, i: number) => {
@@ -68,7 +90,7 @@ export default function MediaPress({ data }: Props) {
                         <span className="text-[11px] text-ink-500 font-medium">{item.source}</span>
                       )}
                       {item.date && (
-                        <span className="text-[11px] text-ink-600">· {item.date}</span>
+                        <span className="text-[11px] text-ink-600">· {formatDate(item.date)}</span>
                       )}
                       <span className={`text-[10px] uppercase tracking-wider font-semibold ${style.text}`}>
                         {sentiment}

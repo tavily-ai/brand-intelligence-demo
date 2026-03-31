@@ -9,6 +9,7 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
 import { CategoriesState, CategoryKey, CATEGORY_LABELS } from "../types";
 import CategoryCard from "./CategoryCard";
@@ -45,9 +46,26 @@ function StatusDot({ status }: { status: string }) {
   return <div className="w-1.5 h-1.5 rounded-full bg-ink-700" />;
 }
 
+/** Build a logo URL via Google favicon service */
+function logoUrl(domain: string): string {
+  const clean = domain.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
+  return `https://www.google.com/s2/favicons?domain=${clean}&sz=64`;
+}
+
+/** Initials fallback for when logo fails */
+function Initials({ name }: { name: string }) {
+  const initials = name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <div className="w-8 h-8 rounded-md bg-accent-400/15 border border-accent-400/30 flex items-center justify-center text-sm font-bold text-accent-500">
+      {initials}
+    </div>
+  );
+}
+
 export default function ResultsDashboard({ categories, brandName }: Props) {
   const [activeTab, setActiveTab] = useState<CategoryKey>("brand_overview");
   const prevCompletedRef = useRef<Set<CategoryKey>>(new Set());
+  const [logoFailed, setLogoFailed] = useState(false);
 
   // Auto-switch to the latest completed tab as results stream in
   useEffect(() => {
@@ -68,6 +86,17 @@ export default function ResultsDashboard({ categories, brandName }: Props) {
   const activeState = categories[activeTab];
   const ActiveComp = TABS.find((t) => t.key === activeTab)!.component;
 
+  // Use resolved brand name from API if available, fallback to title-cased input
+  const overviewData = categories.brand_overview?.data;
+  const displayName = overviewData?.brand_name || brandName.charAt(0).toUpperCase() + brandName.slice(1);
+
+  const domain = overviewData?.website
+    ?.replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/.*$/, "");
+
+  const websiteUrl = domain ? `https://${domain}` : null;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -77,23 +106,31 @@ export default function ResultsDashboard({ categories, brandName }: Props) {
     >
       {/* Section header */}
       <div className="flex items-center gap-3 mb-5">
-        {(() => {
-          const domain = categories.brand_overview?.data?.website;
-          if (!domain) return null;
-          const cleanDomain = domain.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
-          return (
-            <img
-              src={`https://img.logo.dev/${cleanDomain}?token=pk_e60DLzAKRIi4-6q9LeyCXQ&size=64&format=png`}
-              alt={`${brandName} logo`}
-              className="w-8 h-8 rounded-md object-contain bg-white ring-1 ring-ink-800"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-          );
-        })()}
-        <h2 className="font-display text-xl text-ink-100">{brandName}</h2>
+        {domain && !logoFailed ? (
+          <img
+            src={logoUrl(domain)}
+            alt={`${displayName} logo`}
+            className="w-8 h-8 rounded-md object-contain bg-white ring-1 ring-ink-800"
+            onError={() => setLogoFailed(true)}
+          />
+        ) : (
+          <Initials name={displayName} />
+        )}
+        <h2 className="font-display text-xl text-ink-100">{displayName}</h2>
         <span className="text-xs text-ink-500 font-mono">
           {completedCount}/5 categories
         </span>
+        {websiteUrl && (
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-ink-500 hover:text-accent-400 transition-colors"
+            title={domain}
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
       </div>
 
       {/* Tab bar */}
@@ -110,7 +147,7 @@ export default function ResultsDashboard({ categories, brandName }: Props) {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`
-                group relative flex items-center gap-2 px-4 py-3 text-sm font-medium
+                group relative flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium
                 transition-all rounded-t-lg cursor-pointer
                 ${
                   isActive

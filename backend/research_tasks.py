@@ -32,9 +32,13 @@ def get_research_tasks(
             ),
             "output_schema": {
                 "properties": {
+                    "brand_name": {
+                        "type": "string",
+                        "description": "The official/canonical brand name as it appears publicly, properly cased (e.g. 'CrowdStrike', 'Datadog', 'Salesforce', 'Cisco Webex').",
+                    },
                     "tagline": {
                         "type": "string",
-                        "description": "The brand's official tagline or a concise one-sentence positioning statement (max 15 words)",
+                        "description": "A concise one-sentence positioning statement for the brand (max 15 words). If no official tagline exists, write a descriptive one based on what the brand is known for. Return N/A if no tagline exists.",
                     },
                     "description": {
                         "type": "string",

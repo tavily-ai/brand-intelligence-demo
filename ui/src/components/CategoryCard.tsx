@@ -122,9 +122,8 @@ export default function CategoryCard({
   delay = 0,
   embedded = false,
 }: Props) {
-  if (state.status === "pending") return null;
-
-  const isLoading = state.status === "in_progress";
+  const isPending = state.status === "pending";
+  const isLoading = state.status === "in_progress" || isPending;
   const isError = state.status === "error";
 
   const Wrapper = embedded ? "div" : motion.div;

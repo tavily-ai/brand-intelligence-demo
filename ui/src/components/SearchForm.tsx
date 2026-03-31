@@ -30,7 +30,7 @@ export default function SearchForm({ onSearch, isLoading, onCancel }: Props) {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Brand name input */}
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-600" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 z-10" />
           <input
             type="text"
             value={brandName}
@@ -43,7 +43,7 @@ export default function SearchForm({ onSearch, isLoading, onCancel }: Props) {
 
         {/* Context input */}
         <div className="relative sm:w-80">
-          <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-600" />
+          <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 z-10" />
           <input
             type="text"
             value={context}

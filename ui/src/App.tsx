@@ -215,7 +215,7 @@ export default function App() {
         </AnimatePresence>
 
         <AnimatePresence>
-          {hasResults && (
+          {(isResearching || hasResults) && (
             <ResultsDashboard
               key="results"
               categories={categories}

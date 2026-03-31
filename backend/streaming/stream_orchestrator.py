@@ -29,7 +29,7 @@ def _write_category_log(
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in brand_name)
         ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        log_path = LOG_DIR / f"{safe_name}_{ts}.jsonl"
+        log_path = LOG_DIR / f"{safe_name}_{category}_{ts}.jsonl"
 
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

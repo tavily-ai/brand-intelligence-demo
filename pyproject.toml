@@ -1,0 +1,13 @@
+[project]
+name = "brand-intelligence-demo"
+version = "0.1.0"
+description = "An AI-powered brand perception and reputation research tool built with Tavily."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi==0.115.11",
+    "httpx>=0.28.1",
+    "pydantic==2.12.5",
+    "python-dotenv>=1.2.2",
+    "uvicorn[standard]==0.34.0",
+]

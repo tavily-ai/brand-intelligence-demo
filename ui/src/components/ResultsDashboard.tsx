@@ -190,7 +190,7 @@ export default function ResultsDashboard({ categories, brandName }: Props) {
               delay={0}
               embedded
             >
-              <ActiveComp data={activeState.data || {}} />
+              <ActiveComp data={activeState.data ? { ...activeState.data, _sources: activeState.sources } : {}} />
             </CategoryCard>
           </motion.div>
         </AnimatePresence>

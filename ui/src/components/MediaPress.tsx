@@ -1,7 +1,55 @@
 import { ExternalLink } from "lucide-react";
+import { Source } from "../types";
 
 interface Props {
   data: Record<string, any>;
+}
+
+function getDomain(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function buildFaviconMap(sources: Source[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const s of sources) {
+    if (!s.favicon) continue;
+    const domain = getDomain(s.url);
+    if (domain && !map.has(domain)) {
+      map.set(domain, s.favicon);
+    }
+  }
+  return map;
+}
+
+/** Try to resolve a favicon for a press item via its URL or source name */
+function resolveFavicon(
+  item: any,
+  faviconMap: Map<string, string>
+): { faviconUrl: string | null; domain: string | null; linkUrl: string | null } {
+  // First try the item's explicit URL
+  if (item.url) {
+    const domain = getDomain(item.url);
+    if (domain) {
+      const fav = faviconMap.get(domain);
+      if (fav) return { faviconUrl: fav, domain, linkUrl: item.url };
+      // Fallback: try Google's favicon service
+      return { faviconUrl: `https://www.google.com/s2/favicons?domain=${domain}&sz=32`, domain, linkUrl: item.url };
+    }
+  }
+  // Try matching source name against favicon map domains
+  if (item.source) {
+    const srcLower = item.source.toLowerCase();
+    for (const [domain, fav] of faviconMap) {
+      if (domain.toLowerCase().includes(srcLower) || srcLower.includes(domain.toLowerCase().replace(/\..+$/, ""))) {
+        return { faviconUrl: fav, domain, linkUrl: null };
+      }
+    }
+  }
+  return { faviconUrl: null, domain: null, linkUrl: null };
 }
 
 function parsePressItems(raw: unknown): any[] {
@@ -53,6 +101,8 @@ export default function MediaPress({ data }: Props) {
   const pressItems = sortByDateDesc(parsePressItems(data.press_items));
   const tone = (data.overall_tone || "").toLowerCase();
   const toneStyle = TONE_STYLES[tone] || TONE_STYLES.mixed;
+  const apiSources: Source[] = Array.isArray(data._sources) ? data._sources : [];
+  const faviconMap = buildFaviconMap(apiSources);
 
   return (
     <div className="space-y-4">
@@ -77,10 +127,36 @@ export default function MediaPress({ data }: Props) {
             const sentiment = (item.sentiment || "").toLowerCase();
             const style = SENTIMENT_STYLES[sentiment] || SENTIMENT_STYLES.neutral;
 
+            const { faviconUrl, domain, linkUrl } = resolveFavicon(item, faviconMap);
+
             return (
               <div key={i} className="p-3 rounded-lg glass-subtle">
                 <div className="flex items-start gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full ${style.dot} mt-1.5 shrink-0`} />
+                  {/* Favicon or sentiment dot */}
+                  {faviconUrl ? (
+                    <a
+                      href={linkUrl || item.url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 mt-0.5 opacity-70 hover:opacity-100 transition-opacity"
+                      title={domain || item.source || ""}
+                    >
+                      <img
+                        src={faviconUrl}
+                        alt={domain || item.source || ""}
+                        className="w-4 h-4 rounded-sm"
+                        onError={(e) => {
+                          // Hide broken favicon, show fallback dot
+                          (e.target as HTMLImageElement).style.display = "none";
+                          const dot = (e.target as HTMLImageElement).nextElementSibling;
+                          if (dot) (dot as HTMLElement).style.display = "block";
+                        }}
+                      />
+                      <div className={`w-1.5 h-1.5 rounded-full ${style.dot} mt-1 hidden`} />
+                    </a>
+                  ) : (
+                    <div className={`w-1.5 h-1.5 rounded-full ${style.dot} mt-1.5 shrink-0`} />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm text-ink-100 font-medium">{item.headline}</span>

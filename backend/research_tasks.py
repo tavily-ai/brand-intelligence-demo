@@ -129,7 +129,7 @@ def get_research_tasks(
                                 },
                                 "date": {
                                     "type": "string",
-                                    "description": "Publication date in YYYY-MM format for sorting (e.g. '2025-03', '2024-11'). Use best estimate if exact month is unknown.",
+                                    "description": "Publication date in YYYY-MM format for sorting (e.g. '2025-03', '2024-11'). If unknown, return 'N/A'.",
                                 },
                                 "sentiment": {
                                     "type": "string",

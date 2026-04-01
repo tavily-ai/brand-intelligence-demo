@@ -3,8 +3,6 @@
 import json
 import asyncio
 import logging
-from datetime import datetime, timezone
-from pathlib import Path
 from typing import AsyncGenerator, Dict, Any, List, Optional
 
 from .tavily_stream import stream_tavily_research
@@ -12,38 +10,6 @@ from .event_handler import process_stream_event
 from ..research_tasks import get_research_tasks
 
 logger = logging.getLogger(__name__)
-
-# --- Debug logging -----------------------------------------------------------
-LOG_DIR = Path(__file__).resolve().parent.parent.parent / "logs"
-
-
-def _write_category_log(
-    brand_name: str,
-    category: str,
-    raw_accumulated: Dict[str, str],
-    parsed_data: Dict[str, Any],
-    sources: List[Dict[str, Any]],
-):
-    """Append one JSON line per category completion to logs/<brand>_<timestamp>.jsonl"""
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in brand_name)
-        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        log_path = LOG_DIR / f"{safe_name}_{category}_{ts}.jsonl"
-
-        entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "brand": brand_name,
-            "category": category,
-            "raw_accumulated": raw_accumulated,
-            "parsed_data": parsed_data,
-            "source_count": len(sources),
-        }
-        with open(log_path, "a") as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-        logger.info(f"Logged {category} result → {log_path}")
-    except Exception as e:
-        logger.warning(f"Failed to write debug log for {category}: {e}")
 
 
 CATEGORIES = [
@@ -107,15 +73,6 @@ async def _research_category(
                 parsed[k] = json.loads(v)
             except (json.JSONDecodeError, TypeError):
                 parsed[k] = v
-
-        # Debug log: write raw + parsed data to logs/
-        _write_category_log(
-            brand_name=brand_name,
-            category=category,
-            raw_accumulated=dict(accumulated_content),
-            parsed_data=parsed,
-            sources=unique_sources,
-        )
 
         await event_queue.put(
             f'data: {json.dumps({"type": "category_complete", "category": category, "data": parsed, "sources": unique_sources})}\n\n'

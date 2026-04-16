@@ -2,6 +2,10 @@
 
 An AI-powered brand perception and reputation research tool built with [Tavily](https://tavily.com). Enter a brand name and get a comprehensive intelligence report streamed in real time — covering brand positioning, media coverage, public sentiment, analyst ratings, competitive landscape, and risk/opportunity analysis.
 
+## Demo
+
+[![Brand Intelligence Report Demo](https://img.youtube.com/vi/GIeaq-3D0gs/maxresdefault.jpg)](https://www.youtube.com/watch?v=GIeaq-3D0gs)
+
 ## Getting Started
 
 ### 1. Clone and configure environment

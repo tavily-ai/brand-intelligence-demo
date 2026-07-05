@@ -44,7 +44,7 @@ function CategoryProgress({ label, state }: { label: string; state: CategoryStat
           {state.queries.slice(0, 6).map((q) => (
             <span
               key={q}
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/40 border border-white/60"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-ink-900 border border-ink-800"
             >
               <Globe className="w-3 h-3 text-ink-500 shrink-0" />
               <span className="text-[11px] text-ink-400 font-mono truncate max-w-[220px]">
@@ -72,7 +72,7 @@ function CategoryProgress({ label, state }: { label: string; state: CategoryStat
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.02, duration: 0.15 }}
               title={src.title || src.url}
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/30 hover:bg-white/60 border border-white/50 transition-all group"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-ink-900 hover:bg-ink-850 border border-ink-800 transition-all group"
             >
               {src.favicon ? (
                 <img

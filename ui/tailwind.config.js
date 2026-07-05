@@ -4,36 +4,39 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Redwood warm-neutral ramp (lightest → darkest), used via `ink-*`
         ink: {
-          950: "#f8f8fa",
-          900: "#f1f1f5",
-          850: "#e8e8ee",
-          800: "#dddde6",
-          700: "#c8c8d4",
-          600: "#a0a0b4",
-          500: "#7a7a92",
-          400: "#5c5c72",
-          300: "#44445a",
-          200: "#2e2e42",
-          100: "#1a1a2e",
+          950: "#faf9f8",
+          900: "#f4f2f0",
+          850: "#ece9e6",
+          800: "#ded9d4", // borders
+          700: "#cac4bd", // dividers / dots
+          600: "#a69f97", // placeholder / disabled
+          500: "#7a736b", // tertiary text
+          400: "#57524c", // secondary text
+          300: "#3b3934",
+          200: "#2a2825",
+          100: "#1c1b19", // headings / primary text
         },
+        // Oracle Red (Redwood brand), used via `accent-*`
         accent: {
-          300: "#7fb0ff",
-          400: "#4d90ff",
-          500: "#2677ff",
-          600: "#155ae0",
+          300: "#e39b8f",
+          400: "#d46a55",
+          500: "#c74634", // Oracle Red — PMS 180C
+          600: "#a6392a",
         },
         risk: {
-          low: "#16a364",
-          moderate: "#3b82f6",
-          elevated: "#d97706",
-          high: "#dc2626",
-          critical: "#b91c1c",
+          low: "#3a7d44",
+          moderate: "#1b6b75",
+          elevated: "#c07b2a",
+          high: "#c74634",
+          critical: "#a6392a",
         },
       },
       fontFamily: {
-        display: ['"Inter"', "system-ui", "sans-serif"],
-        body: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
+        display: ['"Inter"', '"Helvetica Neue"', "Arial", "system-ui", "sans-serif"],
+        body: ['"Inter"', '"Helvetica Neue"', "Arial", "system-ui", "sans-serif"],
+        serif: ['"Georgia"', '"Times New Roman"', "serif"],
         mono: ['"IBM Plex Mono"', "Menlo", "monospace"],
       },
     },

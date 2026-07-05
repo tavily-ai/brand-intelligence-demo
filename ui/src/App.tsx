@@ -314,36 +314,11 @@ export default function App() {
     view.type === "detail" ? accounts.find((a) => a.id === view.id) : undefined;
 
   return (
-    <div className="min-h-screen relative" style={{ backgroundColor: "var(--color-background)" }}>
-      {/* Background image layer */}
-      <div
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url(/tavily_landscapes_edited_11.webp)",
-          opacity: 0.7,
-          willChange: "transform",
-          transform: "translateZ(0)",
-        }}
-      />
-      <div
-        className="fixed inset-x-0 top-0 z-0 h-48 pointer-events-none"
-        style={{
-          background: "linear-gradient(to bottom, var(--color-background), transparent)",
-          transform: "translateZ(0)",
-        }}
-      />
-      <div
-        className="fixed inset-x-0 bottom-0 z-0 h-48 pointer-events-none"
-        style={{
-          background: "linear-gradient(to top, var(--color-background), transparent)",
-          transform: "translateZ(0)",
-        }}
-      />
+    <div className="min-h-screen" style={{ backgroundColor: "var(--color-background)" }}>
+      <Header />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-8">
-        <Header />
-
-        <div className="mt-8">
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div>
           <AnimatePresence mode="wait">
             {view.type === "list" || !detailAccount ? (
               <AccountList

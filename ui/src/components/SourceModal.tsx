@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { X, ExternalLink, Search, Loader2, FileText, AlertCircle } from "lucide-react";
+import { X, ExternalLink, Loader2, FileText, AlertCircle } from "lucide-react";
 import { NewsItem } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 interface Props {
   item: NewsItem;
-  queries: string[];
   onClose: () => void;
 }
 
@@ -20,7 +19,7 @@ function getDomain(url?: string): string {
   }
 }
 
-export default function SourceModal({ item, queries, onClose }: Props) {
+export default function SourceModal({ item, onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState<string>("");
   const [title, setTitle] = useState<string>("");
@@ -74,23 +73,23 @@ export default function SourceModal({ item, queries, onClose }: Props) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-ink-100/30 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-ink-100/40" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="glass-subtle relative z-10 w-full max-w-2xl max-h-[85vh] rounded-2xl flex flex-col overflow-hidden"
+        className="glass relative z-10 w-full max-w-2xl max-h-[85vh] rounded-xl flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div
           className="flex items-start gap-3 px-5 py-4"
-          style={{ borderBottom: "1px solid rgba(60,58,57,0.1)" }}
+          style={{ borderBottom: "1px solid var(--color-border)" }}
         >
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] uppercase tracking-wider text-ink-500 font-medium mb-1">
-              Tavily result
+            <p className="text-[11px] uppercase tracking-wider text-accent-500 font-semibold mb-1">
+              Source content
             </p>
             <h3 className="text-[15px] font-semibold text-ink-100 leading-snug">
               {title || item.headline || getDomain(item.url)}
@@ -98,7 +97,7 @@ export default function SourceModal({ item, queries, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-ink-500 hover:text-ink-200 hover:bg-white/40 transition-all shrink-0"
+            className="p-1.5 rounded-md text-ink-500 hover:text-ink-200 hover:bg-ink-850 transition-all shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -106,26 +105,6 @@ export default function SourceModal({ item, queries, onClose }: Props) {
 
         {/* Body */}
         <div className="overflow-y-auto px-5 py-4 space-y-4">
-          {/* Queries */}
-          {/* {queries.length > 0 && (
-            <div>
-              <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-ink-500 font-medium mb-2">
-                <Search className="w-3 h-3" />
-                Research queries ({queries.length})
-              </p>
-              <div className="space-y-1">
-                {queries.map((q) => (
-                  <div
-                    key={q}
-                    className="text-[12px] text-ink-300 font-mono bg-white/40 border border-white/60 rounded-md px-2.5 py-1.5"
-                  >
-                    {q}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )} */}
-
           {/* URL */}
           {item.url && (
             <div>
@@ -159,14 +138,14 @@ export default function SourceModal({ item, queries, onClose }: Props) {
             )}
 
             {!loading && error && (
-              <div className="flex items-start gap-2 text-sm text-ink-400 bg-white/40 border border-white/60 rounded-lg px-3 py-2.5">
-                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2 text-sm text-ink-400 bg-ink-900 border border-ink-800 rounded-lg px-3 py-2.5">
+                <AlertCircle className="w-4 h-4 text-accent-500 mt-0.5 shrink-0" />
                 {error}
               </div>
             )}
 
             {!loading && !error && content && (
-              <div className="max-h-[40vh] overflow-y-auto rounded-lg bg-white/50 border border-white/70 px-3.5 py-3">
+              <div className="max-h-[40vh] overflow-y-auto rounded-lg bg-ink-950 border border-ink-800 px-3.5 py-3">
                 <pre className="whitespace-pre-wrap break-words font-body text-[12.5px] leading-relaxed text-ink-300">
                   {content}
                 </pre>

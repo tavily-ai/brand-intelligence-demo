@@ -3,7 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --color-background: #fefcf5; /* Warm cream — Tavily page background */
+  /* Oracle Redwood tokens */
+  --color-background: #f4f2f0;   /* warm light neutral — page background */
+  --color-surface: #ffffff;      /* card / panel surface */
+  --color-surface-alt: #faf9f8;  /* subtle inset surface */
+  --color-border: #e2ddd8;       /* neutral border */
+  --color-border-strong: #d3cdc6;
+  --color-red: #c74634;          /* Oracle Red */
+  --color-red-dark: #a6392a;
+  --color-text: #1c1b19;         /* primary text */
 }
 
 * {
@@ -13,26 +21,27 @@
 }
 
 body {
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-family: "Inter", "Helvetica Neue", Arial, system-ui, sans-serif;
   background-color: var(--color-background);
-  color: #3c3a39; /* Warm charcoal — Tavily "black" */
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d8d2c6;
-  border-radius: 3px;
+  background: #cfc9c2;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #bdb6a8;
+  background: #b3aca3;
 }
 
 /* Pulsing dot animation for progress */
@@ -40,7 +49,6 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
-
 .animate-pulse-dot {
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
@@ -50,66 +58,52 @@ body {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-
 .animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    #efe9dd 25%,
-    #e6dfd1 50%,
-    #efe9dd 75%
-  );
+  background: linear-gradient(90deg, #eeeae6 25%, #e3ded8 50%, #eeeae6 75%);
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
 }
 
-/* Liquid glass effect — warm white tints */
+/* ── Redwood surfaces (flat, subtle elevation — replaces glass morphism) ── */
 .glass {
-  background: rgba(255, 252, 246, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 252, 246, 0.85);
-  box-shadow: 0 8px 24px rgba(60, 58, 57, 0.07);
-  will-change: transform;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 2px rgba(28, 27, 25, 0.04), 0 4px 12px rgba(28, 27, 25, 0.04);
 }
 
 .glass-subtle {
-  background: rgba(255, 252, 246, 0.65);
-  border: 1px solid rgba(255, 252, 246, 0.7);
-  box-shadow: 0 4px 12px rgba(60, 58, 57, 0.05);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
 }
 
 .glass-input {
-  background: rgba(255, 252, 246, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 252, 246, 0.75);
-  box-shadow: 0 2px 8px rgba(60, 58, 57, 0.04);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: none;
 }
 
 .glass-button {
-  background: rgba(255, 252, 246, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 252, 246, 0.8);
-  box-shadow: 0 4px 16px rgba(60, 58, 57, 0.06);
-  transition: all 0.2s ease;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 1px 1px rgba(28, 27, 25, 0.03);
+  transition: all 0.15s ease;
 }
-
 .glass-button:hover {
-  background: rgba(255, 252, 246, 0.75);
-  box-shadow: 0 6px 20px rgba(60, 58, 57, 0.1);
+  background: var(--color-surface-alt);
+  border-color: #c3bcb3;
 }
 
-/* Beige CTA button (Tavily primary) */
+/* Oracle Red primary button (Redwood CTA) */
 .btn-primary {
-  background: #ede6db;
-  border: 1px solid rgba(60, 58, 57, 0.08);
-  box-shadow: 0 4px 16px rgba(60, 58, 57, 0.06);
-  transition: all 0.2s ease;
+  background: var(--color-red);
+  color: #ffffff !important;
+  border: 1px solid var(--color-red);
+  box-shadow: 0 1px 2px rgba(166, 57, 42, 0.25);
+  transition: all 0.15s ease;
 }
 .btn-primary:hover {
-  background: #ddd4c9;
-  box-shadow: 0 6px 20px rgba(60, 58, 57, 0.1);
+  background: var(--color-red-dark);
+  border-color: var(--color-red-dark);
 }
 .btn-primary:active {
   transform: scale(0.98);

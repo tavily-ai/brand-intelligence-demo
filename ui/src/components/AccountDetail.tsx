@@ -164,11 +164,7 @@ export default function AccountDetail({ account, research, onBack, onRefresh }: 
       {/* Source result modal — queries + extracted content + URL */}
       <AnimatePresence>
         {sourceItem && (
-          <SourceModal
-            item={sourceItem}
-            queries={research.categories.recent_news.queries}
-            onClose={() => setSourceItem(null)}
-          />
+          <SourceModal item={sourceItem} onClose={() => setSourceItem(null)} />
         )}
       </AnimatePresence>
     </motion.div>

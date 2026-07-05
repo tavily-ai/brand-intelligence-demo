@@ -71,7 +71,7 @@ export default function AccountRow({ account, research, index, onOpen, onRemove 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
       onClick={onOpen}
-      className="group glass rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:shadow-lg hover:bg-white/60 transition-all"
+      className="group glass rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-ink-700 hover:shadow-md transition-all"
     >
       <AccountLogo name={account.name} domain={account.domain} size={40} />
 

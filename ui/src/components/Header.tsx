@@ -1,43 +1,63 @@
-import { motion } from "framer-motion";
-
 export default function Header() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="flex items-start justify-between gap-4"
+    <header
+      className="sticky top-0 z-40 w-full"
+      style={{
+        background: "var(--color-surface)",
+        borderBottom: "1px solid var(--color-border)",
+      }}
     >
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100 tracking-tight">
-          Account Intelligence
-        </h1>
-        <p className="mt-1.5 text-sm text-ink-400 font-body max-w-xl">
-          Fresh, sourced account news for sellers — powered by the{" "}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="flex items-center gap-4 h-14">
+          {/* Oracle wordmark */}
+          <a
+            href="https://www.oracle.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 select-none"
+            aria-label="Oracle Fusion"
+          >
+            <span
+              className="font-display font-semibold text-[22px] leading-none"
+              style={{ color: "var(--color-red)", letterSpacing: "0.06em" }}
+            >
+              ORACLE
+            </span>
+          </a>
+
+          {/* Divider */}
+          <span
+            className="h-6 w-px shrink-0"
+            style={{ background: "var(--color-border-strong)" }}
+          />
+
+          {/* Product name */}
+          <div className="flex flex-col justify-center min-w-0">
+            <span className="text-[15px] font-semibold text-ink-100 leading-tight truncate">
+              Account Intelligence
+            </span>
+            {/* <span className="text-[11px] text-ink-500 leading-tight truncate">
+              Fusion Sales · Account Signals
+            </span> */}
+          </div>
+
+          {/* Right: "Powered by Tavily" — mono wordmark blends with Redwood neutrals */}
           <a
             href="https://tavily.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-accent-500 hover:text-accent-600 transition-colors"
+            className="ml-auto shrink-0 hidden sm:flex items-center gap-2 group"
+            title="Powered by the Tavily Research API"
           >
-            Tavily Research API
+            <span className="text-[11px] text-ink-500 leading-none">Powered by</span>
+            <img
+              src="/tavily-logo.svg"
+              alt="Tavily"
+              className="h-[18px] w-auto object-contain opacity-65 group-hover:opacity-100 transition-opacity"
+            />
           </a>
-          .
-        </p>
+        </div>
       </div>
-
-      <a
-        href="https://app.tavily.com/home"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="shrink-0 pt-0.5"
-      >
-        <img
-          src="/tavily-full.svg"
-          alt="Tavily"
-          className="h-6 sm:h-7 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
-        />
-      </a>
-    </motion.div>
+    </header>
   );
 }

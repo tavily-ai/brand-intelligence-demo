@@ -40,7 +40,7 @@ function formatInline(text: string): React.ReactNode[] {
       parts.push(
         <code
           key={match.index}
-          className="break-all rounded bg-white/10 px-1 py-0.5 font-mono text-[13px] text-accent-400"
+          className="break-all rounded bg-ink-850 px-1 py-0.5 font-mono text-[13px] text-accent-600"
         >
           {match[4]}
         </code>

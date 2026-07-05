@@ -30,7 +30,7 @@ export default function SourcesList({ sources }: Props) {
   return (
     <div
       className="mt-1 min-w-0 pt-3"
-      style={{ borderTop: "1px solid rgba(255,255,255,0.4)" }}
+      style={{ borderTop: "1px solid var(--color-border)" }}
     >
       <p className="text-[11px] text-ink-500 uppercase tracking-wider font-medium mb-2.5">
         Sources ({unique.length})
@@ -49,8 +49,8 @@ export default function SourcesList({ sources }: Props) {
             rel="noopener noreferrer"
             title={src.title || src.url}
             className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md
-              bg-white/[0.04] hover:bg-white/[0.10] border border-white/[0.06]
-              hover:border-white/[0.12] transition-all group"
+              bg-ink-900 hover:bg-ink-850 border border-ink-800
+              hover:border-ink-700 transition-all group"
           >
             {src.favicon ? (
               <img

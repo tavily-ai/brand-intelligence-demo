@@ -4,12 +4,9 @@ export interface Source {
   favicon?: string;
 }
 
-export type CategoryKey =
-  | "brand_overview"
-  | "media_press"
-  | "public_perception"
-  | "analyst_competitive"
-  | "risks_opportunities";
+/* ── Research categories (per account) ───────────────────────────────── */
+
+export type CategoryKey = "account_summary" | "recent_news";
 
 export type CategoryStatus = "pending" | "in_progress" | "completed" | "error";
 
@@ -17,30 +14,18 @@ export type ResearchPhase = "planning" | "searching" | "analyzing" | "generating
 
 export interface CategoryState {
   status: CategoryStatus;
-  data: Record<string, any> | null;
-  sources: Source[];
   progressMessage: string;
   phase: ResearchPhase | null;
   queries: string[];
+  sources: Source[];
 }
 
-export type CategoriesState = Record<CategoryKey, CategoryState>;
-
 export const CATEGORY_LABELS: Record<CategoryKey, string> = {
-  brand_overview: "Brand Overview",
-  media_press: "Media & Press",
-  public_perception: "Public Perception",
-  analyst_competitive: "Analyst & Competitive",
-  risks_opportunities: "Risks & Opportunities",
+  account_summary: "Account Summary",
+  recent_news: "Recent News",
 };
 
-export const CATEGORY_ORDER: CategoryKey[] = [
-  "brand_overview",
-  "media_press",
-  "public_perception",
-  "analyst_competitive",
-  "risks_opportunities",
-];
+export const CATEGORY_ORDER: CategoryKey[] = ["account_summary", "recent_news"];
 
 export const PHASE_LABELS: Record<ResearchPhase, string> = {
   planning: "Planning",
@@ -49,18 +34,82 @@ export const PHASE_LABELS: Record<ResearchPhase, string> = {
   generating: "Generating",
 };
 
-export function initialCategoriesState(): CategoriesState {
-  const blank: CategoryState = {
+/* ── Structured research output ──────────────────────────────────────── */
+
+export interface AccountSummaryData {
+  company_name?: string;
+  summary?: string;
+  industry?: string;
+  headquarters?: string;
+  employees?: string;
+  revenue?: string;
+  parent_or_subsidiaries?: string;
+  strategic_direction?: string;
+  website?: string;
+}
+
+export interface NewsItem {
+  date?: string;
+  headline?: string;
+  summary?: string;
+  category?: string;
+  source_name?: string;
+  url?: string;
+  actionable?: boolean;
+  suggested_action?: string;
+}
+
+/* ── Accounts (the seller's book) ────────────────────────────────────── */
+
+export type AccountStatus = "not_researched" | "researching" | "done" | "error";
+
+export interface Account {
+  id: string;
+  name: string;
+  industry?: string;
+  headquarters?: string;
+  /** Primary domain, used for the logo (e.g. "servicenow.com"). */
+  domain?: string;
+}
+
+export interface AccountResearch {
+  status: AccountStatus;
+  summary: AccountSummaryData | null;
+  news: NewsItem[];
+  summarySources: Source[];
+  newsSources: Source[];
+  categories: Record<CategoryKey, CategoryState>;
+  error?: string;
+  /** Timestamp (ms) of the last completed research run. */
+  researchedAt?: number;
+}
+
+export function blankCategoryState(): CategoryState {
+  return {
     status: "pending",
-    data: null,
-    sources: [],
     progressMessage: "",
     phase: null,
     queries: [],
+    sources: [],
   };
-  const state: Partial<CategoriesState> = {};
-  for (const key of CATEGORY_ORDER) {
-    state[key] = { ...blank };
-  }
-  return state as CategoriesState;
+}
+
+export function initialResearch(): AccountResearch {
+  return {
+    status: "not_researched",
+    summary: null,
+    news: [],
+    summarySources: [],
+    newsSources: [],
+    categories: {
+      account_summary: blankCategoryState(),
+      recent_news: blankCategoryState(),
+    },
+  };
+}
+
+/** Count of actionable news items — the badge on each account row. */
+export function actionableCount(research: AccountResearch | undefined): number {
+  if (!research) return 0;
+  return research.news.filter((n) => n.actionable).length;
 }

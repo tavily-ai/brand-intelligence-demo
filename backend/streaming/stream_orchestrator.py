@@ -1,4 +1,4 @@
-"""Parallel fan-out orchestrator — runs 5 brand research categories concurrently."""
+"""Parallel fan-out orchestrator — runs the 2 account research categories concurrently."""
 
 import json
 import asyncio
@@ -13,19 +13,13 @@ logger = logging.getLogger(__name__)
 
 
 CATEGORIES = [
-    "brand_overview",
-    "media_press",
-    "public_perception",
-    "analyst_competitive",
-    "risks_opportunities",
+    "account_summary",
+    "recent_news",
 ]
 
 CATEGORY_LABELS = {
-    "brand_overview": "Brand Overview",
-    "media_press": "Media & Press",
-    "public_perception": "Public Perception",
-    "analyst_competitive": "Analyst & Competitive",
-    "risks_opportunities": "Risks & Opportunities",
+    "account_summary": "Account Summary",
+    "recent_news": "Recent News",
 }
 
 
@@ -35,7 +29,7 @@ async def _research_category(
     output_schema: Dict[str, Any],
     api_key: str,
     event_queue: asyncio.Queue,
-    brand_name: str = "",
+    account_name: str = "",
 ):
     """Run a single category research and push events onto the shared queue."""
     accumulated_content: Dict[str, str] = {}
@@ -85,22 +79,24 @@ async def _research_category(
         )
 
 
-async def run_brand_research(
-    brand_name: str,
+async def run_account_research(
+    account_name: str,
+    industry: Optional[str],
     context: Optional[str],
     api_key: str,
 ) -> AsyncGenerator[str, None]:
     """
-    Fan-out 5 parallel Tavily Research streams and merge events into a single SSE stream.
+    Fan-out the account research categories as parallel Tavily Research streams
+    and merge their events into a single SSE stream.
     """
-    tasks_config = get_research_tasks(brand_name, context)
+    tasks_config = get_research_tasks(account_name, industry, context)
 
     # Start event
-    yield f'data: {json.dumps({"type": "start", "categories": list(CATEGORY_LABELS.values()), "brand_name": brand_name})}\n\n'
+    yield f'data: {json.dumps({"type": "start", "categories": list(CATEGORY_LABELS.values()), "account_name": account_name})}\n\n'
 
     event_queue: asyncio.Queue = asyncio.Queue()
 
-    # Launch all 5 categories in parallel
+    # Launch all categories in parallel
     async_tasks = []
     for cat in CATEGORIES:
         cfg = tasks_config[cat]
@@ -111,7 +107,7 @@ async def run_brand_research(
                 output_schema=cfg["output_schema"],
                 api_key=api_key,
                 event_queue=event_queue,
-                brand_name=brand_name,
+                account_name=account_name,
             )
         )
         async_tasks.append(task)
@@ -166,4 +162,4 @@ async def run_brand_research(
     await asyncio.gather(*async_tasks, return_exceptions=True)
 
     # Final complete event with all data
-    yield f'data: {json.dumps({"type": "complete", "data": {"brand_name": brand_name, "context": context, **completed_categories}, "sources": all_category_sources})}\n\n'
+    yield f'data: {json.dumps({"type": "complete", "data": {"account_name": account_name, "industry": industry, "context": context, **completed_categories}, "sources": all_category_sources})}\n\n'

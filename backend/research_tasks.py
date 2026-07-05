@@ -1,4 +1,9 @@
-"""Research task configurations for the 5 brand intelligence categories."""
+"""Research task configurations for account intelligence.
+
+Two categories per account:
+  1. account_summary — a short, current business snapshot for a seller.
+  2. recent_news     — the last ~90 days of significant, sourced, actionable news.
+"""
 
 from datetime import date
 from typing import Dict, Any, Optional
@@ -7,397 +12,147 @@ from typing import Dict, Any, Optional
 def _context_clause(context: Optional[str]) -> str:
     if not context or not context.strip():
         return ""
-    return f" Additional context: {context.strip()}"
+    return f" Additional context: {context.strip()}."
+
+
+def _industry_clause(industry: Optional[str]) -> str:
+    if not industry or not industry.strip():
+        return ""
+    return f" (industry: {industry.strip()})"
 
 
 def get_research_tasks(
-    brand_name: str, context: Optional[str] = None
+    account_name: str,
+    industry: Optional[str] = None,
+    context: Optional[str] = None,
 ) -> Dict[str, Dict[str, Any]]:
     """
-    Return the 5 research category configs, each with a query and output_schema
-    for the Tavily Research API.
+    Return the 2 research category configs, each with a query and output_schema
+    for the Tavily Research API. Aimed at a B2B seller, not a PR analyst.
     """
     ctx = _context_clause(context)
+    ind = _industry_clause(industry)
     today = date.today().strftime("%B %d, %Y")
 
     return {
-        # ── 1. Brand Overview ─────────────────────────────────────────────
-        "brand_overview": {
+        # ── 1. Account Summary ────────────────────────────────────────────
+        "account_summary": {
             "query": (
-                f"As of {today}, provide a comprehensive brand profile for {brand_name}. "
-                f"Include: brand positioning and tagline, parent company (if any), headquarters, "
-                f"year founded, industry, key products or services (top 3-5), "
-                f"target audience and customer segments, brand values or mission statement, "
-                f"and primary website domain.{ctx}"
+                f"As of {today}, give a concise, current business snapshot of "
+                f"{account_name}{ind}. Cover: what the company does, its approximate "
+                f"size (employee count and annual revenue ballpark), any notable parent "
+                f"company or key subsidiaries, headquarters, and its current strategic "
+                f"direction and priorities. Keep it to a few sentences — this is quick "
+                f"context for a B2B sales rep, not an analyst report.{ctx}"
             ),
             "output_schema": {
                 "properties": {
-                    "brand_name": {
+                    "company_name": {
                         "type": "string",
-                        "description": "The official/canonical brand name as it appears publicly, properly cased (e.g. 'CrowdStrike', 'Datadog', 'Salesforce', 'Cisco Webex').",
+                        "description": "The official/canonical company name, properly cased (e.g. 'ServiceNow', 'Bank of Montreal', 'First Solar').",
                     },
-                    "tagline": {
+                    "summary": {
                         "type": "string",
-                        "description": "A concise one-sentence positioning statement for the brand (max 15 words). If no official tagline exists, write a descriptive one based on what the brand is known for. Return N/A if no tagline exists.",
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "What the brand does and what it is known for in 2-3 sentences",
-                    },
-                    "parent_company": {
-                        "type": "string",
-                        "description": "Parent company or holding company if applicable, otherwise 'Independent'",
-                    },
-                    "headquarters": {
-                        "type": "string",
-                        "description": "Headquarters city and country",
-                    },
-                    "founded": {
-                        "type": "string",
-                        "description": "Year founded or launched",
+                        "description": "A 3-5 sentence current snapshot: what the company does, its size/revenue ballpark, any notable parent or subsidiaries, and its current strategic direction. Written for a seller who needs fast context.",
                     },
                     "industry": {
                         "type": "string",
-                        "description": "Primary industry and sub-industry",
+                        "description": "Primary industry and sub-industry (e.g. 'Enterprise Software — IT Service Management').",
                     },
-                    "key_products": {
-                        "type": "array",
-                        "description": "Top 3-5 key products or services",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string",
-                                    "description": "Product or service name",
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "description": "One-sentence description",
-                                },
-                            },
-                        },
-                    },
-                    "target_audience": {
+                    "headquarters": {
                         "type": "string",
-                        "description": "Primary target audience and customer segments",
+                        "description": "Headquarters city and country/state.",
                     },
-                    "brand_values": {
+                    "employees": {
                         "type": "string",
-                        "description": "Core brand values, mission statement, or brand promise",
+                        "description": "Approximate employee count (e.g. '~28,000'). Return 'N/A' if unknown.",
+                    },
+                    "revenue": {
+                        "type": "string",
+                        "description": "Approximate annual revenue ballpark with fiscal year if known (e.g. '$10.9B (FY2024)'). Return 'N/A' if unknown.",
+                    },
+                    "parent_or_subsidiaries": {
+                        "type": "string",
+                        "description": "Notable parent company or key subsidiaries. Return 'Independent' if neither is notable.",
+                    },
+                    "strategic_direction": {
+                        "type": "string",
+                        "description": "One concise line on the company's current strategic priorities or direction.",
                     },
                     "website": {
                         "type": "string",
-                        "description": "Primary website domain (e.g. 'cisco.com'). Just the domain, no protocol.",
-                    },
-                    "summary": {
-                        "type": "string",
-                        "description": "A concise 2-3 sentence executive summary of the brand's market position and identity",
+                        "description": "Primary website domain only (e.g. 'servicenow.com'). No protocol, no path.",
                     },
                 },
-                "required": ["description", "summary", "website"],
+                "required": ["company_name", "summary", "website"],
             },
         },
-        # ── 2. Media & Press Sentiment ────────────────────────────────────
-        "media_press": {
+        # ── 2. Recent News ────────────────────────────────────────────────
+        "recent_news": {
             "query": (
-                f"As of {today}, research recent media and press coverage of {brand_name} "
-                f"from the past 12 months. Find: major press stories and their tone "
-                f"(positive, neutral, or negative), any PR crises or controversies, "
-                f"notable earned media highlights (awards, recognitions, viral moments), "
-                f"and overall journalist sentiment toward the brand. "
-                f"Include the source URL for each press item.{ctx}"
+                f"As of {today}, find the most significant business news about "
+                f"{account_name}{ind} from the last 90 days. Prioritize: quarterly "
+                f"earnings, mergers & acquisitions, funding rounds, executive and "
+                f"leadership changes, layoffs or restructuring, major product or strategy "
+                f"announcements, market/geographic expansion, regulatory or legal "
+                f"developments, and security incidents or breaches. For every item give "
+                f"the exact date, a one-line headline, a short factual summary, the "
+                f"publication name, and a direct source URL. For each item decide whether "
+                f"it is a sales-relevant trigger a B2B seller could act on (e.g. a new CIO "
+                f"or CxO, a new AI or digital initiative, funding, expansion, a stated pain "
+                f"point) and, if so, give one concise suggested seller action. Only include "
+                f"real, dated, sourced events — no speculation.{ctx}"
             ),
             "output_schema": {
                 "properties": {
-                    "overall_tone": {
-                        "type": "string",
-                        "description": "Overall media tone as a single word: 'positive', 'mixed', or 'negative'",
-                    },
-                    "press_items": {
+                    "news_items": {
                         "type": "array",
-                        "description": "5-8 notable press stories from the past 12 months, most recent first",
+                        "description": "8-15 significant, dated, sourced news items from roughly the last 90 days, most recent first.",
                         "items": {
                             "type": "object",
                             "properties": {
-                                "headline": {
-                                    "type": "string",
-                                    "description": "Article headline or concise title",
-                                },
-                                "source": {
-                                    "type": "string",
-                                    "description": "Publication name (e.g. 'TechCrunch', 'Reuters')",
-                                },
                                 "date": {
                                     "type": "string",
-                                    "description": "Publication date in YYYY-MM format for sorting (e.g. '2025-03', '2024-11'). If unknown, return 'N/A'.",
+                                    "description": "Event/publication date as YYYY-MM-DD (or YYYY-MM if the day is unknown). Used for sorting newest first.",
                                 },
-                                "sentiment": {
+                                "headline": {
                                     "type": "string",
-                                    "description": "One of: 'positive', 'neutral', 'negative'",
+                                    "description": "A single-line headline summary of the event (max ~15 words).",
                                 },
                                 "summary": {
                                     "type": "string",
-                                    "description": "1-2 sentence summary of the article",
+                                    "description": "1-2 sentence factual summary including key numbers or names.",
                                 },
-                                "url": {
-                                    "type": "string",
-                                    "description": "URL to the article",
-                                },
-                            },
-                        },
-                    },
-                    "pr_crises": {
-                        "type": "string",
-                        "description": "Any PR crises or major controversies in the past 12 months. Say 'No major PR crises' if none.",
-                    },
-                    "earned_media_highlights": {
-                        "type": "string",
-                        "description": "Notable earned media: awards, analyst recognitions, viral campaigns, or positive press milestones",
-                    },
-                    "summary": {
-                        "type": "string",
-                        "description": "Executive summary of media sentiment in 2-3 sentences",
-                    },
-                },
-                "required": ["overall_tone", "summary"],
-            },
-        },
-        # ── 3. Public Perception ──────────────────────────────────────────
-        "public_perception": {
-            "query": (
-                f"As of {today}, research public perception and community sentiment about {brand_name}. "
-                f"Find: discussions on Reddit, Twitter/X, LinkedIn, and Hacker News about this brand. "
-                f"Look for review scores on platforms like G2, Glassdoor, Trustpilot, or TrustRadius. "
-                f"Identify recurring praise themes and recurring complaint themes from users and employees. "
-                f"Include source URLs where possible.{ctx}"
-            ),
-            "output_schema": {
-                "properties": {
-                    "overall_sentiment": {
-                        "type": "string",
-                        "description": "Overall public sentiment as a single word: 'positive', 'mixed', or 'negative'",
-                    },
-                    "review_scores": {
-                        "type": "array",
-                        "description": "Review scores from major platforms. Include 3-6 platforms.",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "platform": {
-                                    "type": "string",
-                                    "description": "Platform name (e.g. 'G2', 'Glassdoor', 'Trustpilot')",
-                                },
-                                "score": {
-                                    "type": "string",
-                                    "description": "Rating score (e.g. '4.5/5', '3.8/5')",
-                                },
-                                "review_count": {
-                                    "type": "string",
-                                    "description": "Approximate number of reviews (e.g. '2,400 reviews')",
-                                },
-                                "url": {
-                                    "type": "string",
-                                    "description": "Direct URL to the review page on that platform. Empty string if unavailable.",
-                                },
-                            },
-                        },
-                    },
-                    "common_praise": {
-                        "type": "array",
-                        "description": "Top 3-5 recurring positive themes from users/employees",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "theme": {
-                                    "type": "string",
-                                    "description": "The positive theme (e.g. 'Reliability', 'Customer support')",
-                                },
-                                "detail": {
-                                    "type": "string",
-                                    "description": "1-2 sentence elaboration with specific examples",
-                                },
-                                "source_url": {
-                                    "type": "string",
-                                    "description": "URL to a review, Reddit thread, or discussion supporting this. Empty string if unavailable.",
-                                },
-                            },
-                        },
-                    },
-                    "common_complaints": {
-                        "type": "array",
-                        "description": "Top 3-5 recurring negative themes or pain points",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "theme": {
-                                    "type": "string",
-                                    "description": "The complaint theme (e.g. 'Pricing opacity', 'Slow support')",
-                                },
-                                "detail": {
-                                    "type": "string",
-                                    "description": "1-2 sentence elaboration with specific examples",
-                                },
-                                "source_url": {
-                                    "type": "string",
-                                    "description": "URL to a review, Reddit thread, or discussion supporting this. Empty string if unavailable.",
-                                },
-                            },
-                        },
-                    },
-                    "summary": {
-                        "type": "string",
-                        "description": "Executive summary of public perception in 2-3 sentences",
-                    },
-                },
-                "required": ["overall_sentiment", "summary"],
-            },
-        },
-        # ── 4. Analyst & Competitive Standing ─────────────────────────────
-        "analyst_competitive": {
-            "query": (
-                f"As of {today}, research analyst ratings and competitive positioning for {brand_name}. "
-                f"Find: Gartner Magic Quadrant placement, Forrester Wave positioning, IDC MarketScape ratings, "
-                f"and any other major analyst evaluations. "
-                f"Identify the top 3-5 competitors, their approximate market share, "
-                f"and how {brand_name} differentiates from each. "
-                f"Include any notable industry awards or thought leadership recognitions.{ctx}"
-            ),
-            "output_schema": {
-                "properties": {
-                    "analyst_ratings": {
-                        "type": "array",
-                        "description": "Major analyst evaluations. Include 2-5 ratings.",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "firm": {
-                                    "type": "string",
-                                    "description": "Analyst firm (e.g. 'Gartner', 'Forrester', 'IDC')",
-                                },
-                                "report": {
-                                    "type": "string",
-                                    "description": "Report name (e.g. 'Magic Quadrant for UCaaS 2025')",
-                                },
-                                "rating": {
-                                    "type": "string",
-                                    "description": "Rating or placement (e.g. 'Leader', 'Strong Performer', 'Challenger')",
-                                },
-                                "detail": {
-                                    "type": "string",
-                                    "description": "1-2 sentence summary of the evaluation",
-                                },
-                                "url": {
-                                    "type": "string",
-                                    "description": "URL to the report, announcement, or blog post about this rating. Empty string if unavailable.",
-                                },
-                            },
-                        },
-                    },
-                    "competitors": {
-                        "type": "array",
-                        "description": "Top 3-5 competitors, ordered by market relevance",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string",
-                                    "description": "Competitor name",
-                                },
-                                "market_share": {
-                                    "type": "string",
-                                    "description": "Approximate market share if known (e.g. '55%', 'Unknown')",
-                                },
-                                "positioning": {
-                                    "type": "string",
-                                    "description": "How this competitor positions itself relative to the brand",
-                                },
-                                "key_strength": {
-                                    "type": "string",
-                                    "description": "Primary competitive advantage of this rival",
-                                },
-                            },
-                        },
-                    },
-                    "market_position": {
-                        "type": "string",
-                        "description": "The brand's overall market position — market share, rank, and trajectory",
-                    },
-                    "awards": {
-                        "type": "string",
-                        "description": "Notable industry awards, recognitions, or thought leadership accolades from the past 1-2 years",
-                    },
-                    "summary": {
-                        "type": "string",
-                        "description": "Executive summary of competitive standing in 2-3 sentences",
-                    },
-                },
-                "required": ["summary"],
-            },
-        },
-        # ── 5. Risks & Opportunities ──────────────────────────────────────
-        "risks_opportunities": {
-            "query": (
-                f"As of {today}, research brand risks and growth opportunities for {brand_name}. "
-                f"For risks: find controversies, lawsuits, data breaches, product outages, "
-                f"executive scandals, regulatory issues, negative analyst commentary, and customer churn signals. "
-                f"For opportunities: identify underserved audiences, emerging market narratives the brand could own, "
-                f"competitor weaknesses to exploit, partnership angles, and whitespace in the market. "
-                f"Include source URLs for each risk.{ctx}"
-            ),
-            "output_schema": {
-                "properties": {
-                    "risks": {
-                        "type": "array",
-                        "description": "3-6 brand/reputation risks, most severe first",
-                        "items": {
-                            "type": "object",
-                            "properties": {
                                 "category": {
                                     "type": "string",
-                                    "description": "Risk category (e.g. 'Security Vulnerability', 'Litigation', 'Executive Turnover', 'Service Outage', 'Regulatory')",
+                                    "description": "One of: 'Earnings', 'M&A', 'Funding', 'Leadership', 'Layoffs/Restructuring', 'Product/Strategy', 'Expansion', 'Regulatory/Legal', 'Security Incident', 'Partnership', 'Other'.",
                                 },
-                                "severity": {
+                                "source_name": {
                                     "type": "string",
-                                    "description": "One of: 'high', 'medium', 'low'",
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "description": "2-3 sentence description of the risk with specific details",
+                                    "description": "Publication name (e.g. 'Reuters', 'Bloomberg', 'The Wall Street Journal').",
                                 },
                                 "url": {
                                     "type": "string",
-                                    "description": "Source URL for this risk item. Empty string if unavailable.",
+                                    "description": "Direct URL to the source article.",
+                                },
+                                "actionable": {
+                                    "type": "boolean",
+                                    "description": "true if this is a sales-relevant trigger a B2B seller could act on; false if it is context only.",
+                                },
+                                "suggested_action": {
+                                    "type": "string",
+                                    "description": "If actionable, one concise sentence on what a seller should do and why (e.g. 'New CIO hired — strong moment for outreach on IT modernization'). If not actionable, return an empty string.",
                                 },
                             },
+                            "required": ["date", "headline", "actionable"],
                         },
                     },
-                    "opportunities": {
-                        "type": "array",
-                        "description": "3-5 growth or positioning opportunities",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "area": {
-                                    "type": "string",
-                                    "description": "Opportunity area (e.g. 'SMB Market Expansion', 'AI Positioning', 'Partner Ecosystem')",
-                                },
-                                "potential": {
-                                    "type": "string",
-                                    "description": "One of: 'high', 'medium', 'low'",
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "description": "2-3 sentence description of the opportunity and how to pursue it",
-                                },
-                            },
-                        },
-                    },
-                    "summary": {
+                    "as_of": {
                         "type": "string",
-                        "description": "Executive summary of the brand's risk/opportunity profile in 2-3 sentences",
+                        "description": "The date this news snapshot reflects (today's date).",
                     },
                 },
-                "required": ["summary"],
+                "required": ["news_items"],
             },
         },
     }

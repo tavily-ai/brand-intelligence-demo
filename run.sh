@@ -2,7 +2,7 @@
 set -e
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
-SESSION="brand-intel"
+SESSION="account-intel"
 
 # If session already exists, just attach
 if tmux has-session -t "$SESSION" 2>/dev/null; then

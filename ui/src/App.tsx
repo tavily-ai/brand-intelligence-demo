@@ -1,54 +1,206 @@
 import { useState, useCallback, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import Header from "./components/Header";
-import SearchForm from "./components/SearchForm";
-import ProgressTracker from "./components/ProgressTracker";
-import ResultsDashboard from "./components/ResultsDashboard";
+import AccountList from "./components/AccountList";
+import AccountDetail from "./components/AccountDetail";
+import { SEED_ACCOUNTS } from "./accounts";
 import {
-  CategoriesState,
+  Account,
+  AccountResearch,
   CategoryKey,
-  initialCategoriesState,
+  initialResearch,
+  ResearchPhase,
 } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const CONCURRENCY = 3;
+
+type View = { type: "list" } | { type: "detail"; id: string };
+
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-") || `account-${Date.now()}`
+  );
+}
 
 export default function App() {
-  const [categories, setCategories] = useState<CategoriesState>(
-    initialCategoriesState()
+  const [accounts, setAccounts] = useState<Account[]>(SEED_ACCOUNTS);
+  const [researchMap, setResearchMap] = useState<Record<string, AccountResearch>>(
+    {}
   );
-  const [isResearching, setIsResearching] = useState(false);
-  const [brandName, setBrandName] = useState("");
-  const [hasResults, setHasResults] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
+  const [view, setView] = useState<View>({ type: "list" });
+  const [researchingIds, setResearchingIds] = useState<Set<string>>(new Set());
 
-  const handleSearch = useCallback(
-    async (name: string, context: string) => {
-      // Reset state
-      setCategories(initialCategoriesState());
-      setIsResearching(true);
-      setBrandName(name);
-      setHasResults(false);
+  const abortControllers = useRef<Record<string, AbortController>>({});
 
-      abortRef.current?.abort();
+  /* ── State helpers ─────────────────────────────────────────────────── */
+
+  const patchResearch = useCallback(
+    (id: string, updater: (r: AccountResearch) => AccountResearch) => {
+      setResearchMap((prev) => ({
+        ...prev,
+        [id]: updater(prev[id] || initialResearch()),
+      }));
+    },
+    []
+  );
+
+  const patchCategory = useCallback(
+    (
+      id: string,
+      cat: CategoryKey,
+      updater: (c: AccountResearch["categories"][CategoryKey]) => AccountResearch["categories"][CategoryKey]
+    ) => {
+      patchResearch(id, (r) => ({
+        ...r,
+        categories: { ...r.categories, [cat]: updater(r.categories[cat]) },
+      }));
+    },
+    [patchResearch]
+  );
+
+  /* ── Event handling ────────────────────────────────────────────────── */
+
+  const handleEvent = useCallback(
+    (id: string, event: any) => {
+      const cat = event.category as CategoryKey | undefined;
+
+      switch (event.type) {
+        case "start":
+          break;
+
+        case "progress":
+          if (cat) {
+            patchCategory(id, cat, (c) => ({
+              ...c,
+              status: "in_progress",
+              progressMessage: event.message || c.progressMessage,
+              phase: (event.phase as ResearchPhase) || c.phase,
+              queries: event.queries?.length
+                ? [...new Set([...c.queries, ...event.queries])]
+                : c.queries,
+            }));
+          }
+          break;
+
+        case "sources_found":
+          if (cat) {
+            patchCategory(id, cat, (c) => ({
+              ...c,
+              sources: [...c.sources, ...(event.sources || [])],
+            }));
+          }
+          break;
+
+        case "category_complete":
+          if (cat === "account_summary") {
+            patchResearch(id, (r) => ({
+              ...r,
+              summary: event.data || r.summary,
+              summarySources: event.sources || r.summarySources,
+              categories: {
+                ...r.categories,
+                account_summary: {
+                  ...r.categories.account_summary,
+                  status: "completed",
+                  progressMessage: "",
+                },
+              },
+            }));
+          } else if (cat === "recent_news") {
+            const items = Array.isArray(event.data?.news_items)
+              ? event.data.news_items
+              : [];
+            patchResearch(id, (r) => ({
+              ...r,
+              news: items,
+              newsSources: event.sources || r.newsSources,
+              categories: {
+                ...r.categories,
+                recent_news: {
+                  ...r.categories.recent_news,
+                  status: "completed",
+                  progressMessage: "",
+                },
+              },
+            }));
+          }
+          break;
+
+        case "error":
+          if (cat) {
+            patchCategory(id, cat, (c) => ({
+              ...c,
+              status: "error",
+              progressMessage: event.message || "An error occurred",
+            }));
+          } else {
+            patchResearch(id, (r) => ({
+              ...r,
+              status: "error",
+              error: event.message || "An error occurred",
+            }));
+          }
+          break;
+
+        case "complete":
+          break;
+      }
+    },
+    [patchCategory, patchResearch]
+  );
+
+  /* ── Streaming research for a single account ───────────────────────── */
+
+  const researchAccount = useCallback(
+    async (account: Account) => {
+      const id = account.id;
+
+      // Abort any in-flight run for this account
+      abortControllers.current[id]?.abort();
       const controller = new AbortController();
-      abortRef.current = controller;
+      abortControllers.current[id] = controller;
+
+      // Reset to a fresh researching state
+      patchResearch(id, () => ({
+        ...initialResearch(),
+        status: "researching",
+        categories: {
+          account_summary: {
+            status: "in_progress",
+            progressMessage: "Starting…",
+            phase: null,
+            queries: [],
+            sources: [],
+          },
+          recent_news: {
+            status: "in_progress",
+            progressMessage: "Starting…",
+            phase: null,
+            queries: [],
+            sources: [],
+          },
+        },
+      }));
+      setResearchingIds((prev) => new Set(prev).add(id));
 
       try {
-        const response = await fetch(`${API_URL}/api/brand/stream`, {
+        const response = await fetch(`${API_URL}/api/account/stream`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            brand_name: name,
-            context: context || undefined,
+            account_name: account.name,
+            industry: account.industry || undefined,
           }),
           signal: controller.signal,
         });
 
-        if (!response.ok) {
+        if (!response.ok || !response.body) {
           throw new Error(response.statusText || "Request failed");
-        }
-        if (!response.body) {
-          throw new Error("No response body");
         }
 
         const reader = response.body.getReader();
@@ -66,163 +218,155 @@ export default function App() {
           for (const line of lines) {
             if (line.startsWith("data: ")) {
               try {
-                const event = JSON.parse(line.slice(6));
-                handleEvent(event);
+                handleEvent(id, JSON.parse(line.slice(6)));
               } catch {
-                // skip malformed lines
+                /* skip malformed */
               }
             }
           }
         }
+
+        // Mark done (preserve error status if a category errored fatally)
+        patchResearch(id, (r) => ({
+          ...r,
+          status: r.status === "error" ? "error" : "done",
+          researchedAt: Date.now(),
+        }));
       } catch (err: any) {
         if (err.name !== "AbortError") {
-          console.error("Stream error:", err);
+          console.error(`Research error for ${account.name}:`, err);
+          patchResearch(id, (r) => ({
+            ...r,
+            status: "error",
+            error: err.message || "Research failed",
+          }));
         }
       } finally {
-        setIsResearching(false);
+        setResearchingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       }
     },
-    []
+    [handleEvent, patchResearch]
   );
 
-  const handleEvent = useCallback((event: any) => {
-    const cat = event.category as CategoryKey | undefined;
+  /* ── Research all (concurrency-capped) ─────────────────────────────── */
 
-    switch (event.type) {
-      case "start":
-        break;
+  const researchAll = useCallback(async () => {
+    const queue = [...accounts];
+    const runNext = async (): Promise<void> => {
+      const account = queue.shift();
+      if (!account) return;
+      await researchAccount(account);
+      return runNext();
+    };
+    const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, () =>
+      runNext()
+    );
+    await Promise.all(workers);
+  }, [accounts, researchAccount]);
 
-      case "progress":
-        if (cat) {
-          setCategories((prev) => ({
-            ...prev,
-            [cat]: {
-              ...prev[cat],
-              status: "in_progress" as const,
-              progressMessage: event.message || "",
-              phase: event.phase || prev[cat].phase,
-              queries: event.queries?.length
-                ? [...new Set([...prev[cat].queries, ...event.queries])]
-                : prev[cat].queries,
-            },
-          }));
-        }
-        break;
+  /* ── Account CRUD ──────────────────────────────────────────────────── */
 
-      case "sources_found":
-        if (cat) {
-          setCategories((prev) => ({
-            ...prev,
-            [cat]: {
-              ...prev[cat],
-              sources: [
-                ...prev[cat].sources,
-                ...(event.sources || []),
-              ],
-            },
-          }));
-        }
-        break;
-
-      case "category_complete":
-        if (cat) {
-          setCategories((prev) => ({
-            ...prev,
-            [cat]: {
-              status: "completed" as const,
-              data: event.data || {},
-              sources: event.sources || prev[cat].sources,
-              progressMessage: "",
-              phase: null,
-              queries: prev[cat].queries,
-            },
-          }));
-          setHasResults(true);
-        }
-        break;
-
-      case "error":
-        if (cat) {
-          setCategories((prev) => ({
-            ...prev,
-            [cat]: {
-              ...prev[cat],
-              status: "error" as const,
-              progressMessage: event.message || "An error occurred",
-            },
-          }));
-        }
-        break;
-
-      case "complete":
-        break;
-    }
+  const handleAdd = useCallback((name: string) => {
+    setAccounts((prev) => {
+      let id = slugify(name);
+      while (prev.some((a) => a.id === id)) id = `${id}-${prev.length}`;
+      return [{ id, name }, ...prev];
+    });
   }, []);
 
-  const handleCancel = useCallback(() => {
-    abortRef.current?.abort();
-    setIsResearching(false);
+  const handleRemove = useCallback((id: string) => {
+    abortControllers.current[id]?.abort();
+    setAccounts((prev) => prev.filter((a) => a.id !== id));
+    setResearchMap((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   }, []);
+
+  const handleOpen = useCallback(
+    (id: string) => {
+      setView({ type: "detail", id });
+      const r = researchMap[id];
+      if (!r || r.status === "not_researched") {
+        const account = accounts.find((a) => a.id === id);
+        if (account) researchAccount(account);
+      }
+    },
+    [accounts, researchMap, researchAccount]
+  );
+
+  const handleRefresh = useCallback(
+    (id: string) => {
+      const account = accounts.find((a) => a.id === id);
+      if (account) researchAccount(account);
+    },
+    [accounts, researchAccount]
+  );
+
+  /* ── Render ────────────────────────────────────────────────────────── */
+
+  const detailAccount =
+    view.type === "detail" ? accounts.find((a) => a.id === view.id) : undefined;
 
   return (
-    <div className="min-h-screen relative" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen relative" style={{ backgroundColor: "var(--color-background)" }}>
       {/* Background image layer */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url(/tavily_landscapes_edited_11.webp)',
+          backgroundImage: "url(/tavily_landscapes_edited_11.webp)",
           opacity: 0.7,
-          willChange: 'transform',
-          transform: 'translateZ(0)',
+          willChange: "transform",
+          transform: "translateZ(0)",
         }}
       />
-      {/* Top gradient fade */}
       <div
         className="fixed inset-x-0 top-0 z-0 h-48 pointer-events-none"
         style={{
-          background: 'linear-gradient(to bottom, var(--color-background), transparent)',
-          transform: 'translateZ(0)',
+          background: "linear-gradient(to bottom, var(--color-background), transparent)",
+          transform: "translateZ(0)",
         }}
       />
-      {/* Bottom gradient fade */}
       <div
         className="fixed inset-x-0 bottom-0 z-0 h-48 pointer-events-none"
         style={{
-          background: 'linear-gradient(to top, var(--color-background), transparent)',
-          transform: 'translateZ(0)',
+          background: "linear-gradient(to top, var(--color-background), transparent)",
+          transform: "translateZ(0)",
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 py-8">
         <Header />
 
-        <div className="mt-10">
-          <SearchForm
-            onSearch={handleSearch}
-            isLoading={isResearching}
-            onCancel={handleCancel}
-          />
+        <div className="mt-8">
+          <AnimatePresence mode="wait">
+            {view.type === "list" || !detailAccount ? (
+              <AccountList
+                key="list"
+                accounts={accounts}
+                researchMap={researchMap}
+                onOpen={handleOpen}
+                onRemove={handleRemove}
+                onAdd={handleAdd}
+                onResearchAll={researchAll}
+                researchingCount={researchingIds.size}
+              />
+            ) : (
+              <AccountDetail
+                key={`detail-${detailAccount.id}`}
+                account={detailAccount}
+                research={researchMap[detailAccount.id] || initialResearch()}
+                onBack={() => setView({ type: "list" })}
+                onRefresh={() => handleRefresh(detailAccount.id)}
+              />
+            )}
+          </AnimatePresence>
         </div>
-
-        <AnimatePresence mode="wait">
-          {isResearching && (
-            <ProgressTracker
-              key="progress"
-              categories={categories}
-              brandName={brandName}
-            />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {(isResearching || hasResults) && (
-            <ResultsDashboard
-              key="results"
-              categories={categories}
-              brandName={brandName}
-            />
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

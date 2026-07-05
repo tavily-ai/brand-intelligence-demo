@@ -1,12 +1,24 @@
-"""Pydantic models for the brand intelligence report."""
+"""Pydantic models for account intelligence."""
 
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
 
-class ResearchRequest(BaseModel):
-    brand_name: str
+class AccountResearchRequest(BaseModel):
+    account_name: str
+    industry: Optional[str] = None
     context: Optional[str] = None
+
+
+class ExtractRequest(BaseModel):
+    url: str
+
+
+class ExtractResponse(BaseModel):
+    url: str
+    title: Optional[str] = None
+    content: Optional[str] = None
+    error: Optional[str] = None
 
 
 class Source(BaseModel):
@@ -15,56 +27,38 @@ class Source(BaseModel):
     favicon: Optional[str] = None
 
 
-class BrandOverviewData(BaseModel):
-    tagline: Optional[str] = None
-    description: Optional[str] = None
-    parent_company: Optional[str] = None
-    headquarters: Optional[str] = None
-    founded: Optional[str] = None
+class AccountSummaryData(BaseModel):
+    company_name: Optional[str] = None
+    summary: Optional[str] = None
     industry: Optional[str] = None
-    key_products: Optional[List[Dict[str, str]]] = None
-    target_audience: Optional[str] = None
-    brand_values: Optional[str] = None
+    headquarters: Optional[str] = None
+    employees: Optional[str] = None
+    revenue: Optional[str] = None
+    parent_or_subsidiaries: Optional[str] = None
+    strategic_direction: Optional[str] = None
     website: Optional[str] = None
+
+
+class NewsItem(BaseModel):
+    date: Optional[str] = None
+    headline: Optional[str] = None
     summary: Optional[str] = None
+    category: Optional[str] = None
+    source_name: Optional[str] = None
+    url: Optional[str] = None
+    actionable: Optional[bool] = None
+    suggested_action: Optional[str] = None
 
 
-class MediaPressData(BaseModel):
-    overall_tone: Optional[str] = None
-    press_items: Optional[List[Dict[str, str]]] = None
-    pr_crises: Optional[str] = None
-    earned_media_highlights: Optional[str] = None
-    summary: Optional[str] = None
+class RecentNewsData(BaseModel):
+    news_items: Optional[List[NewsItem]] = None
+    as_of: Optional[str] = None
 
 
-class PublicPerceptionData(BaseModel):
-    overall_sentiment: Optional[str] = None
-    review_scores: Optional[List[Dict[str, str]]] = None
-    common_praise: Optional[List[Dict[str, str]]] = None
-    common_complaints: Optional[List[Dict[str, str]]] = None
-    summary: Optional[str] = None
-
-
-class AnalystCompetitiveData(BaseModel):
-    analyst_ratings: Optional[List[Dict[str, str]]] = None
-    competitors: Optional[List[Dict[str, str]]] = None
-    market_position: Optional[str] = None
-    awards: Optional[str] = None
-    summary: Optional[str] = None
-
-
-class RisksOpportunitiesData(BaseModel):
-    risks: Optional[List[Dict[str, str]]] = None
-    opportunities: Optional[List[Dict[str, str]]] = None
-    summary: Optional[str] = None
-
-
-class ResearchResponse(BaseModel):
-    brand_name: str
+class AccountResearchResponse(BaseModel):
+    account_name: str
+    industry: Optional[str] = None
     context: Optional[str] = None
-    brand_overview: Optional[Dict[str, Any]] = None
-    media_press: Optional[Dict[str, Any]] = None
-    public_perception: Optional[Dict[str, Any]] = None
-    analyst_competitive: Optional[Dict[str, Any]] = None
-    risks_opportunities: Optional[Dict[str, Any]] = None
+    account_summary: Optional[Dict[str, Any]] = None
+    recent_news: Optional[Dict[str, Any]] = None
     sources: Optional[Dict[str, List[Source]]] = None

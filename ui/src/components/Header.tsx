@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Radar } from "lucide-react";
 
 export default function Header() {
   return (
@@ -7,17 +6,38 @@ export default function Header() {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="flex items-start justify-between gap-4"
     >
-      <div className="flex items-center gap-3">
-        <Radar className="w-6 h-6 text-accent-400" />
-        <h1 className="font-display text-2xl font-semibold text-ink-100">
-          Brand Intelligence
+      <div>
+        <h1 className="font-display text-2xl font-semibold text-ink-100 tracking-tight">
+          Account Intelligence
         </h1>
+        <p className="mt-1.5 text-sm text-ink-400 font-body max-w-xl">
+          Fresh, sourced account news for sellers — powered by the{" "}
+          <a
+            href="https://tavily.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-500 hover:text-accent-600 transition-colors"
+          >
+            Tavily Research API
+          </a>
+          .
+        </p>
       </div>
-      <p className="mt-1.5 text-sm text-ink-400 font-body max-w-xl">
-        Enter a brand name to get a real-time reputation audit covering media
-        sentiment, public perception, analyst ratings, and competitive positioning.
-      </p>
+
+      <a
+        href="https://app.tavily.com/home"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="shrink-0 pt-0.5"
+      >
+        <img
+          src="/tavily-full.svg"
+          alt="Tavily"
+          className="h-6 sm:h-7 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+        />
+      </a>
     </motion.div>
   );
 }

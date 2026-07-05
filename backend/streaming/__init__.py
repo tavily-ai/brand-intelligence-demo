@@ -1,1 +1,1 @@
-from .stream_orchestrator import run_brand_research
+from .stream_orchestrator import run_account_research

@@ -4,38 +4,38 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Redwood warm-neutral ramp (lightest → darkest), used via `ink-*`
+        // Tavily warm-neutral ramp (lightest → darkest), used via `ink-*`
         ink: {
-          950: "#faf9f8",
-          900: "#f4f2f0",
-          850: "#ece9e6",
-          800: "#ded9d4", // borders
-          700: "#cac4bd", // dividers / dots
-          600: "#a69f97", // placeholder / disabled
-          500: "#7a736b", // tertiary text
-          400: "#57524c", // secondary text
-          300: "#3b3934",
-          200: "#2a2825",
-          100: "#1c1b19", // headings / primary text
+          950: "#fefcf5", // warm cream
+          900: "#f7f4ec",
+          850: "#f0ece1", // subtle section bg
+          800: "#e5ded1", // borders
+          700: "#d3cabb", // dividers / dots
+          600: "#a89f92", // placeholder / disabled
+          500: "#7d7469", // tertiary text
+          400: "#5c554d", // secondary text
+          300: "#47423b",
+          200: "#3f3b38",
+          100: "#3C3A39", // headings / primary text — warm charcoal
         },
-        // Oracle Red (Redwood brand), used via `accent-*`
+        // Tavily primary blue, used via `accent-*`
         accent: {
-          300: "#e39b8f",
-          400: "#d46a55",
-          500: "#c74634", // Oracle Red — PMS 180C
-          600: "#a6392a",
+          300: "#7aa9ff",
+          400: "#4d8bff",
+          500: "#2677FF", // Tavily blue
+          600: "#1a5fd6",
         },
         risk: {
-          low: "#3a7d44",
-          moderate: "#1b6b75",
-          elevated: "#c07b2a",
-          high: "#c74634",
-          critical: "#a6392a",
+          low: "#22C55E",       // green
+          moderate: "#2677FF",  // blue
+          elevated: "#FDC211",  // yellow
+          high: "#ff272d",      // red
+          critical: "#d41f24",
         },
       },
       fontFamily: {
-        display: ['"Inter"', '"Helvetica Neue"', "Arial", "system-ui", "sans-serif"],
-        body: ['"Inter"', '"Helvetica Neue"', "Arial", "system-ui", "sans-serif"],
+        display: ["-apple-system", "BlinkMacSystemFont", '"Segoe UI"', '"Inter"', '"Roboto"', "sans-serif"],
+        body: ["-apple-system", "BlinkMacSystemFont", '"Segoe UI"', '"Inter"', '"Roboto"', "sans-serif"],
         serif: ['"Georgia"', '"Times New Roman"', "serif"],
         mono: ['"IBM Plex Mono"', "Menlo", "monospace"],
       },

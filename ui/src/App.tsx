@@ -314,10 +314,37 @@ export default function App() {
     view.type === "detail" ? accounts.find((a) => a.id === view.id) : undefined;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--color-background)" }}>
-      <Header />
+    <div className="min-h-screen relative" style={{ backgroundColor: "var(--color-background)" }}>
+      {/* Signature Tavily landscape backdrop */}
+      <div className="fixed inset-0 w-full h-full pointer-events-none">
+        <img
+          src="/tavily-landscape.webp"
+          alt=""
+          className="w-full h-full object-cover"
+          style={{ opacity: 0.7 }}
+        />
+        <div
+          className="absolute top-0 left-0 right-0 pointer-events-none"
+          style={{
+            height: "50%",
+            background:
+              "linear-gradient(to bottom, var(--color-background) 0%, var(--color-background) 10%, transparent 100%)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-0 right-0 pointer-events-none"
+          style={{
+            height: "40%",
+            background:
+              "linear-gradient(to top, var(--color-background) 0%, transparent 100%)",
+          }}
+        />
+      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="relative z-10">
+        <Header />
+
+        <div className="max-w-5xl mx-auto px-6 py-8">
         <div>
           <AnimatePresence mode="wait">
             {view.type === "list" || !detailAccount ? (
@@ -341,6 +368,7 @@ export default function App() {
               />
             )}
           </AnimatePresence>
+        </div>
         </div>
       </div>
     </div>

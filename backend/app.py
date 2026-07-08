@@ -18,6 +18,7 @@ if str(project_dir) not in sys.path:
     sys.path.insert(0, str(project_dir))
 
 from backend.models import AccountResearchRequest, ExtractRequest, ExtractResponse
+from backend.content_cleaner import clean_extracted_content
 from backend.streaming import run_account_research
 
 TAVILY_API_BASE = "https://api.tavily.com"
@@ -110,7 +111,7 @@ async def extract(request: ExtractRequest, fastapi_request: Request):
             return ExtractResponse(
                 url=r.get("url", request.url),
                 title=r.get("title"),
-                content=r.get("raw_content") or "",
+                content=clean_extracted_content(r.get("raw_content") or ""),
             )
 
         failed = data.get("failed_results", [])
